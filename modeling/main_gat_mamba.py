@@ -266,10 +266,6 @@ if __name__ == "__main__":
     mlp_dropout = 0.3
     num_gat_heads = 1
 
-    node_sampling_percent = 1
-    num_nodes = 1
-    n_neighbors = 8
-
     FIGURE_DIR = './figures'
     MODEL_DIR = './saved_models'
               
