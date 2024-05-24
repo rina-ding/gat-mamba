@@ -23,7 +23,7 @@ Each dataset's folder structure should be:
 Run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input.
 
 ### Graph data construction
-Run [create_dataset_uni](./modeling/create_dataset_uni.py) to get the procesed graph dataset object named `graph_data.pt` that can be fed into the graph modeling code in the next step, using the extracted features from the previous step as input.
+Run [create_dataset_uni.py](./modeling/create_dataset_uni.py) to get the procesed graph dataset object named `graph_data.pt` that can be fed into the graph modeling code in the next step, using the extracted features from the previous step as input.
 
 ### Modeling
 Run [main_gat_mamba.py](./modeling/main_gat_mamba.py) using `graph_data.pt` as input.
