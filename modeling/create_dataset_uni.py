@@ -92,7 +92,7 @@ def build_graph_as_data_object(df_slide, k_in_knn, pid):
 
 def create_data_object_list(node_features_dir):
     
-    k_in_knn = n_neighbors
+    k_in_knn = 8
 
     data_list = []
     for patient in range(len(node_features_dir)):
@@ -192,10 +192,7 @@ def subtype_subtype_edge(list_of_subtypes):
             return 'none'
 
 if __name__ == "__main__":
-    
-    node_sampling_percent = 1
-    n_neighbors = 8
-   
+
     processed_data_save_path = ''
     if not os.path.exists(processed_data_save_path):
         os.makedirs(processed_data_save_path)
