@@ -1,6 +1,9 @@
 # gat-mamba
 Combining Graph Neural Network and Mamba to Capture Local and Global Tissue Spatial Relationships in Whole Slide Images
 
+In computational pathology, whole slide images (WSIs) are typically segmented into small tiles for analysis due to their large size. A critical aspect of this analysis is the method of aggregating information from these tiles to make predictions at the WSI level. This study introduces a model that treats each tile as a node in a graph and combines a message-passing graph neural network (GNN) with a state space model Mamba to capture both local and global spatial relationships among the tiles in WSIs. The effectiveness of the model was demonstrated on  early-stage lung adenocarcinomas (LUAD) progression-free suvival prediction. We  compared the model with other state-of-the-art methods for tile level information aggregation in WSIs, including tile-level information symmary statistics-based aggregation, multiple instance learning (MIL)-based aggregation, GNN-based aggregation, and GNN-transformer-based aggregation. Additional experiments showed the impact of different types of node features and different tile sampling strategies on the model performance. This work can be easily extended to any WSI-based analysis.
+![overview](overview.png)
+
 ## Instructions 
 ### Required packages
 First, create a pytorch docker container using:
