@@ -1,0 +1,22 @@
+docker run  --shm-size=2g --gpus all -it --rm -v /:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.02-py3
+apt-get update -y
+apt-get install -y openslide-tools
+apt-get install python3-openslide -y
+pip install openslide-python 
+pip install scikit-image
+pip install natsort
+pip install torch_geometric
+pip install pyg_lib torch_scatter torch_sparse  -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+pip install lifelines
+pip install openbabel-wheel
+pip install fsspec 
+pip install rdkit
+pip install pytorch-lightning yacs
+pip install performer-pytorch
+pip install tensorboardX
+pip install ogb
+pip install wandb
+pip install causal-conv1d==1.0.2
+pip install mamba-ssm
+pip install natsort
+pip install scikit-survival
