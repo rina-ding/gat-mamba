@@ -1,4 +1,3 @@
-docker run  --shm-size=2g --gpus all -it --rm -v /:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.02-py3
 apt-get update -y
 apt-get install -y openslide-tools
 apt-get install python3-openslide -y
