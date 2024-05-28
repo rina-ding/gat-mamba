@@ -160,17 +160,17 @@ class FeatureExtractor:
                                 
 if __name__ == "__main__":
     login()  # login with your User Access Token, found at https://huggingface.co/settings/tokens # Code is based on https://github.com/mahmoodlab/uni
-
+    parent_dir_for_tiles = 'parent dir to the tiled WSIs'
     FEATURE_DIR = 'dir to save the extracted features' 
     if not os.path.exists(FEATURE_DIR):
         os.makedirs(FEATURE_DIR)
-    all_cases = natsorted(glob(os.path.join('parent dir to the tiled WSIs'))) 
+    all_cases = natsorted(glob(parent_dir_for_tiles, '*')) 
     df_clinical = 'path to the clinical data that contains a patient outcome (event and days)'
     ssl1_model_path = 'path to luad subtype classification model1'
     ssl2_model_path = 'path to luad subtype classification model2'
     ssl3_model_path = 'path to luad subtype classification model3'
     for i in range(len(all_cases)):
-        tiles_root_dir = glob(os.path.join(all_cases[j], 'tiles_*x_png', '*.png'))
+        tiles_root_dir = glob(os.path.join(all_cases[i], 'tiles_*x_png', '*.png'))
         pid = os.path.basename(all_cases[i])           
         print('For patient ', pid)
         extractor = FeatureExtractor()
@@ -184,11 +184,11 @@ if __name__ == "__main__":
         # Add predicted luad subtype, survival event, and survival days
         event = df_clinical[df_clinical['pid'] == pid]['event']
         days = df_clinical[df_clinical['pid'] == pid]['days']
-        df_features_uni.insert(df_features_uni.columns.get_loc('tile_name')+1, 'event', len(df_features_uni) * [event])
         df_features_uni.insert(df_features_uni.columns.get_loc('tile_name')+1, 'days', len(df_features_uni) * [days])
+        df_features_uni.insert(df_features_uni.columns.get_loc('tile_name')+1, 'event', len(df_features_uni) * [event])
         df_features_uni = df_features_uni.sort_values(by = ['tile_name'], key=natsort_keygen())
         df_features_deep = df_features_deep.sort_values(by = ['tile_name'], key=natsort_keygen())
-        df_features_uni.insert(df_features_uni.columns.get_loc('days')+1, 'predicted_class', df_features_deep['predicted_class'])
+        df_features_uni.insert(df_features_uni.columns.get_loc('event')+1, 'predicted_class', df_features_deep['predicted_class'])
 
         # Saving the features into a csv file
         df_features_uni.to_csv(os.path.join(FEATURE_DIR, str(pid) + '.csv'))

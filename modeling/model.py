@@ -41,7 +41,7 @@ def sinusoidal_positional_embedding(positions, embedding_dim, n=10000.0):
     return embeddings
 
 # Copied from https://github.com/bowang-lab/Graph-Mamba/blob/main/notebooks/mamba.ipynb
-class GNNMambaLayer(torch.nn.Module):
+class GATMambaBlock(torch.nn.Module):
 
     def __init__(
         self,
@@ -167,31 +167,24 @@ class GNNMambaLayer(torch.nn.Module):
                 f'conv={self.conv}, heads={self.heads})')
 
 class GATMamba(torch.nn.Module):
-    def __init__(self, uni_hidden, positional_embedding_size, gnn_dropout, mlp_dropout, num_heads, num_model_layers, model_type):
+    def __init__(self, uni_hidden=64, positional_embedding_size=16, gnn_dropout=0.1, mlp_dropout=0.3, num_heads=1, num_model_layers=1, model_type='gat_mamba'):
         super(GATMamba, self).__init__()
         self.num_heads_gnn = num_heads
-        self.num_heads_transformer = 2
         self.sin_pe_dim = positional_embedding_size
-        self.num_model_layers = num_model_layers
         self.num_uni_features = 1024
+        self.edge_embedding_size = 16
         self.num_continuous_edge_features = 2
-        edge_embedding_size = 16
-        self.num_luad_features = 512
         self.graph_dim_foundation = uni_hidden
-        self.edge_embedding = torch.nn.Embedding(21, edge_embedding_size) # We have 21 subtype-subtype edge categories
-        self.edge_linear_transform = Linear(self.num_continuous_edge_features, edge_embedding_size)
+        self.edge_embedding = torch.nn.Embedding(21, self.edge_embedding_size) # We have 21 subtype-subtype edge categories
+        self.edge_linear_transform = Linear(self.num_continuous_edge_features, self.edge_embedding_size)
         self.uni_feature_linear_transform = Linear(self.num_uni_features, self.graph_dim_foundation)
         hidden = self.graph_dim_foundation + self.sin_pe_dim
 
-        if num_model_layers == 1:
-            self.conv1_gnn = GATConv(self.graph_dim_foundation + self.sin_pe_dim, hidden, heads = self.num_heads_gnn, dropout = gnn_dropout)
-            self.conv1_all = GNNMambaLayer(hidden*self.num_heads_gnn, self.conv1_gnn, heads=self.num_heads_transformer, attn_dropout=mlp_dropout, dropout = mlp_dropout, att_type='mamba')
-        else:
-            self.conv1_gnn = GATConv(self.graph_dim_foundation + self.sin_pe_dim, hidden, heads = self.num_heads_gnn, dropout = gnn_dropout)
-            self.conv1_all = GNNMambaLayer(hidden*self.num_heads_gnn, self.conv1_gnn, heads=self.num_heads_transformer, attn_dropout=mlp_dropout, dropout = mlp_dropout, att_type='mamba')
-
-            self.conv2_gnn = GATConv(hidden*self.num_heads_gnn, hidden*self.num_heads_gnn, heads = self.num_heads_gnn, dropout = gnn_dropout)
-            self.conv2_all = GNNMambaLayer(hidden*self.num_heads_gnn, self.conv2_gnn, heads=self.num_heads_transformer, attn_dropout=mlp_dropout, dropout = mlp_dropout, att_type='mamba')
+        self.layers = torch.nn.ModuleList()
+        for _ in range(num_model_layers):
+            self.conv_gat = GATConv(self.graph_dim_foundation + self.sin_pe_dim, hidden, heads = self.num_heads_gnn, dropout = gnn_dropout)
+            self.layer = GATMambaBlock(hidden*self.num_heads_gnn, self.conv_gat, attn_dropout=mlp_dropout, dropout = mlp_dropout, att_type='mamba')
+            self.layers.append(self.layer)
 
         self.mlp = Sequential(
             Linear(hidden*self.num_heads_gnn, hidden*self.num_heads_gnn // 2),
@@ -219,11 +212,8 @@ class GATMamba(torch.nn.Module):
         continuous_embedding = self.edge_linear_transform(edge_attr[:, 1:3])
         edge_attr = continuous_embedding + categorical_embedding
        
-        if self.num_model_layers == 1:
-            x = F.relu(self.conv1_all(x, edge_index, batch, edge_attr=edge_attr))
-        else:
-            x = F.relu(self.conv1_all(x, edge_index, batch, edge_attr=edge_attr))
-            x = F.relu(self.conv2_all(x, edge_index, batch, edge_attr=edge_attr))
+        for layer in self.layers:
+            x = F.relu(layer(x, edge_index, batch, edge_attr=edge_attr))
 
         x = global_mean_pool(x, batch)
         return self.mlp(x), x

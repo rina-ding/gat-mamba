@@ -19,7 +19,8 @@ class GraphDataset(InMemoryDataset):
         return 'graph_data.pt'
 
     def process(self):
-        all_dir = natsorted(glob(os.path.join('parent dir to the extracted tile/node features', '*.csv')))
+        parent_dir_node_features = 'parent dir to the extracted tile/node features'
+        all_dir = natsorted(glob(os.path.join(parent_dir_node_features, '*.csv')))
         data_list = create_data_object_list(all_dir)
 
         # Store the processed data
