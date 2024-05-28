@@ -20,19 +20,6 @@ import skimage.morphology as sk_morphology
 
 import sys
 
-mag_level = '10'
-SCALE_FACTOR = 32 
-if mag_level == '20':
-  MAG_FACTOR = 1 
-  WSI_LEVEL = 0 
-  ROW_TILE_SIZE = 1024
-  COL_TILE_SIZE = 1024
-elif mag_level == '10':
-  MAG_FACTOR = 4
-  WSI_LEVEL = 1
-  ROW_TILE_SIZE = 512
-  COL_TILE_SIZE = 512
-
 THUMBNAIL_SIZE = 300
 FILTER_PAGINATION_SIZE = 50
 FILTER_PAGINATE = True
@@ -1443,7 +1430,6 @@ class TileSummary:
   orig_h = None
   orig_tile_w = None
   orig_tile_h = None
-  scale_factor = SCALE_FACTOR
   scaled_w = None
   scaled_h = None
   scaled_tile_w = None
@@ -1704,12 +1690,24 @@ def score_tiles(slide_num, slide_id, np_img=None, dimensions=None, small_tile_in
   return tile_sum
 
 if __name__ == "__main__":
+  cohort_name = 'nlst'
+  mag_level = '10'
+  SCALE_FACTOR = 32 
+  if mag_level == '20':
+    MAG_FACTOR = 1 
+    WSI_LEVEL = 0 
+    ROW_TILE_SIZE = 1024
+    COL_TILE_SIZE = 1024
+  elif mag_level == '10':
+    MAG_FACTOR = 4
+    WSI_LEVEL = 1
+    ROW_TILE_SIZE = 512
+    COL_TILE_SIZE = 512
+
   wsi_root_path = 'path_to_wsi_images'
   wsi_cases_dir = glob_function(os.path.join(wsi_root_path, '*'))
   wsi_cases_dir = sorted(wsi_cases_dir)
   wsi_tiles_root_dir = 'path_to_generated_tiles'
- 
-  cohort_name = 'nlst'
 
   for case in range(len(wsi_cases_dir)):
     wsi_tiles_cases_dir = os.path.join(wsi_tiles_root_dir, os.path.basename(wsi_cases_dir[case]))
