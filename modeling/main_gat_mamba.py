@@ -12,6 +12,7 @@ from create_dataset_uni import GraphDataset
 from torch_geometric.loader import DataLoader
 from model import GATMamba
 import matplotlib.pyplot as plt
+import argparse
 
 class TrainModel:
     def __init__(self, input_feature, num_classes, num_epcohs, batches, learning_rate, weight_decay, weight_regu, early_stopping_epoch, gnn_hidden,  positional_embedding_size, gnn_dropout, mlp_dropout, num_gat_heads, num_model_layers, model_type, fold_index):
@@ -246,29 +247,44 @@ def split_graph_data(df_clinical, dataset):
 
 if __name__ == "__main__":
     torch.manual_seed(123) 
-   
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--graph_data_path', type = str, default = None, help = 'path to the saved graph dataset file in .pt format')
+    parser.add_argument('--cv_split_path', type = str, default = None, help = 'path to 5-fold cv train, validation, and test cases')
+    parser.add_argument('--num_epochs', type = int, default = 200, help = 'the maximum number of training epochs')
+    parser.add_argument('--batches', type = int, default = 16, help = 'batch size')
+    parser.add_argument('--early_stopping_epoch', type = int, default = 5, help = 'number of epochs for early stopping in training')
+    parser.add_argument('--num_model_layers', type = int, default = 1, help = 'number of GATMambaBlocks (or number of layers)')
+    parser.add_argument('--learning_rate', type = float, default = 5e-5, help = 'learning rate')
+    parser.add_argument('--weight_decay', type = float, default = 1e-4, help = 'weight decay')
+    parser.add_argument('--weight_regu', type = float, default = 1e-5, help = 'weight regularization factor')
+    parser.add_argument('--gnn_hidden', type = int, default = 64, help = 'the GAT-Mamba UNI node feature hidden dimension')
+    parser.add_argument('--positional_embedding_size', type = int, default = 16, help = 'positional embedding dimension')
+    parser.add_argument('--gnn_dropout', type = float, default = 0.1, help = 'dropout for GAT conv layer')
+    parser.add_argument('--mlp_dropout', type = float, default = 0.3, help = 'dropout for the MLP layer')
+    parser.add_argument('--num_gat_heads', type = int, default = 1, help = 'number of attention heads in GAT')
+
+    args = parser.parse_args()
+
     input_feature = 'uni_features' 
     model_type = 'gat_mamba'
 
-    num_classes = 1
-    num_epcohs = 50
-    batches = 16
-    early_stopping_epoch = 5
-    
-    num_model_layers = 1
-    learning_rate = 5e-5
+    num_epcohs = args.num_epochs
+    batches = args.batches
+    early_stopping_epoch = args.early_stopping_epoch
+    num_model_layers = args.num_model_layers
+    learning_rate = args.learning_rate
+    weight_decay = args.weight_decay
+    weight_regu = args.weight_regu
+    gnn_hidden = args.gnn_hidden
+    positional_embedding_size = args.positional_embedding_size
+    gnn_dropout = args.gnn_dropout
+    mlp_dropout = args.mlp_dropout
+    num_gat_heads = args.num_gat_heads
 
-    weight_decay = 1e-4
-    weight_regu = 1e-5
-    gnn_hidden = 64
-    positional_embedding_size = 16
-    gnn_dropout = 0.1
-    mlp_dropout = 0.3
-    num_gat_heads = 1
+    num_classes = 1
 
     FIGURE_DIR = './figures'
     MODEL_DIR = './saved_models'
-              
     if not os.path.exists(FIGURE_DIR):
         os.makedirs(FIGURE_DIR)
     if not os.path.exists(MODEL_DIR):
@@ -279,13 +295,14 @@ if __name__ == "__main__":
     val_scores = []
     test_scores_auc = []
  
-    processed_data_path = 'path to the saved graph dataset file in .pt format'
+    processed_data_path = args.graph_data_path
+    cv_split_path = args.cv_split_path
     graph_dataset = GraphDataset(root = processed_data_path)
 
     for fold_index in range(5):
-        df_train_path = os.path.join('path to training cases ID')
-        df_val_path = os.path.join('path to validation cases ID')
-        df_test_path = os.path.join('path to test cases ID')
+        df_train_path = os.path.join(cv_split_path, 'fold' + str(fold_index), 'pids_train.csv')
+        df_val_path = os.path.join(cv_split_path, 'fold' + str(fold_index), 'pids_val.csv')
+        df_test_path = os.path.join(cv_split_path, 'fold' + str(fold_index), 'pids_test.csv')
         df_train = pd.read_csv(df_train_path)
         df_val = pd.read_csv(df_val_path)
         df_test = pd.read_csv(df_test_path)
@@ -309,6 +326,22 @@ if __name__ == "__main__":
         test_scores_auc.append(auc_score)
 
         fold_index += 1
+
+    train_scores = [round(i, 3) for i in train_scores]
+    train_scores_array = np.asarray(train_scores)
+    print('Train results: ')
+    print(train_scores)
+    print('Average train scores ', np.mean(train_scores_array, axis = 0))
+    print('SD train scores ', np.std(train_scores_array, axis = 0))
+    print('----------------')
+
+    val_scores = [round(i, 3) for i in val_scores]
+    val_scores_array = np.asarray(val_scores)
+    print('Validation results: ')
+    print(val_scores)
+    print('Average val scores ', np.mean(val_scores_array, axis = 0))
+    print('SD val scores ', np.std(val_scores_array, axis = 0))
+    print('----------------')
 
     test_scores = [round(i, 3) for i in test_scores]
     test_scores_array = np.asarray(test_scores)

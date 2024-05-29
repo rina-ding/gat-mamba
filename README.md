@@ -56,4 +56,7 @@ Output data structure:
 
 ```
 ### Modeling
-Run [main_gat_mamba.py](./modeling/main_gat_mamba.py) using the path of `processed` as input by changing `processed_data_path` in the code.
+Run [main_gat_mamba.py](./modeling/main_gat_mamba.py) using the path of `processed` as input.
+```
+CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_graph_data_path>
+```
