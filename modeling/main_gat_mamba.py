@@ -15,8 +15,7 @@ import matplotlib.pyplot as plt
 import argparse
 
 class TrainModel:
-    def __init__(self, input_feature, num_classes, num_epcohs, batches, learning_rate, weight_decay, weight_regu, early_stopping_epoch, gnn_hidden,  positional_embedding_size, gnn_dropout, mlp_dropout, num_gat_heads, num_model_layers, model_type, fold_index):
-        self.input_feature = input_feature
+    def __init__(self, num_classes, num_epcohs, batches, learning_rate, weight_decay, weight_regu, early_stopping_epoch, gnn_hidden,  positional_embedding_size, gnn_dropout, mlp_dropout, num_gat_heads, num_model_layers, fold_index):
         self.num_classes = num_classes
         self.epochs = num_epcohs
         self.batch = batches
@@ -30,7 +29,6 @@ class TrainModel:
         self.mlp_dropout = mlp_dropout
         self.num_gat_heads = num_gat_heads
         self.num_model_layers = num_model_layers
-        self.model_type = model_type
         self.fold_index = fold_index
         
         self.device = self._get_device()
@@ -74,7 +72,7 @@ class TrainModel:
         trainloader = DataLoader(train_graph_dataset, batch_size=self.batch, shuffle=True)
         validloader = DataLoader(val_graph_dataset, batch_size=self.batch, shuffle=True)
 
-        model = GATMamba(self.gnn_hidden, self.positional_embedding_size, self.gnn_dropout, self.mlp_dropout, self.num_gat_heads, self.num_model_layers, self.model_type).to(self.device)
+        model = GATMamba(self.gnn_hidden, self.positional_embedding_size, self.gnn_dropout, self.mlp_dropout, self.num_gat_heads, self.num_model_layers).to(self.device)
       
         optimizer = optim.Adam(model.parameters(), lr = self.learning_rate, weight_decay = self.weight_decay)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=self.early_stopping_epoch, verbose=True)
@@ -189,7 +187,7 @@ class TrainModel:
         print("Graphs for testing:", len(test_graph_dataset))
         testloader = DataLoader(test_graph_dataset, batch_size=self.batch, shuffle=False)
       
-        model = GATMamba(self.gnn_hidden, self.positional_embedding_size, self.gnn_dropout, self.mlp_dropout, self.num_gat_heads, self.num_model_layers, self.model_type).to(self.device)
+        model = GATMamba(self.gnn_hidden, self.positional_embedding_size, self.gnn_dropout, self.mlp_dropout, self.num_gat_heads, self.num_model_layers).to(self.device)
 
         print("Model Weights Loaded")
         weights = torch.load(os.path.join(MODEL_DIR, 'model_fold' + str(self.fold_index) + '.pth'))
@@ -265,9 +263,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    input_feature = 'uni_features' 
-    model_type = 'gat_mamba'
-
     num_epcohs = args.num_epochs
     batches = args.batches
     early_stopping_epoch = args.early_stopping_epoch
@@ -310,7 +305,7 @@ if __name__ == "__main__":
         val_graph_dataset = split_graph_data(df_val, graph_dataset)
         test_graph_dataset = split_graph_data(df_test, graph_dataset)
 
-        train_obj = TrainModel(input_feature, num_classes, num_epcohs, batches, learning_rate, weight_decay, weight_regu, early_stopping_epoch, gnn_hidden,  positional_embedding_size, gnn_dropout, mlp_dropout, num_gat_heads, num_model_layers, model_type, fold_index)
+        train_obj = TrainModel(num_classes, num_epcohs, batches, learning_rate, weight_decay, weight_regu, early_stopping_epoch, gnn_hidden,  positional_embedding_size, gnn_dropout, mlp_dropout, num_gat_heads, num_model_layers, fold_index)
         train_obj.start_training(train_graph_dataset, val_graph_dataset)
         train_score, df_prediction_train = train_obj.runinference(train_graph_dataset)
         train_scores.append(train_score)
@@ -318,10 +313,8 @@ if __name__ == "__main__":
         val_scores.append(val_score)
         test_score, df_prediction_test = train_obj.runinference(test_graph_dataset)
         test_scores.append(test_score)
-
         df_prediction_train.to_csv(os.path.join(FIGURE_DIR, 'fold' + str(fold_index) + 'prediction_train.csv'), index = False)
         df_prediction_test.to_csv(os.path.join(FIGURE_DIR, 'fold' + str(fold_index) + 'prediction_test.csv'), index = False)
-
         auc_score = get_auc_score(df_prediction_train, df_prediction_test)
         test_scores_auc.append(auc_score)
 

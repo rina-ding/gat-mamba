@@ -121,29 +121,22 @@ class GATMambaBlock(torch.nn.Module):
     ) -> Tensor:
         r"""Runs the forward pass of the module."""
         hs = []
-        if self.conv is not None:  # Local MPNN.
-            h = self.conv(x, edge_index, **kwargs)
-            h = F.dropout(h, p=self.dropout, training=self.training)
-            # h = h + x
+        # Algorithm 2 lines 4-5
+        if self.conv is not None:  
+            h = self.conv(x, edge_index, **kwargs) 
+            h = F.dropout(h, p=self.dropout, training=self.training) 
             if self.norm1 is not None:
                 if self.norm_with_batch:
                     h = self.norm1(h, batch=batch)
                 else:
                     h = self.norm1(h)
             hs.append(h)
-
-        ### Global attention transformer-style model.
-        if self.att_type == 'transformer':
-            h, mask = to_dense_batch(x, batch)
-            h, _ = self.attn(h, h, h, key_padding_mask=~mask, need_weights=False)
-            h = h[mask]
-            
+        
+        # Algorithm 2 lines 6-7
         if self.att_type == 'mamba':
             h, mask = to_dense_batch(x, batch)
             h = self.self_attn(h)[mask]
-           
         h = F.dropout(h, p=self.dropout, training=self.training)
-        # h = h + x  # Residual connection.
         if self.norm2 is not None:
             if self.norm_with_batch:
                 h = self.norm2(h, batch=batch)
@@ -151,8 +144,8 @@ class GATMambaBlock(torch.nn.Module):
                 h = self.norm2(h)
         hs.append(h)
 
-        out = sum(hs)  # Combine local and global outputs.
-
+        # Algorithm 2 lines 8-9
+        out = sum(hs)  # Combine local and global representations
         out = out + self.mlp(out)
         if self.norm3 is not None:
             if self.norm_with_batch:
@@ -167,7 +160,7 @@ class GATMambaBlock(torch.nn.Module):
                 f'conv={self.conv}, heads={self.heads})')
 
 class GATMamba(torch.nn.Module):
-    def __init__(self, uni_hidden=64, positional_embedding_size=16, gnn_dropout=0.1, mlp_dropout=0.3, num_heads=1, num_model_layers=1, model_type='gat_mamba'):
+    def __init__(self, uni_hidden=64, positional_embedding_size=16, gnn_dropout=0.1, mlp_dropout=0.3, num_heads=1, num_model_layers=1):
         super(GATMamba, self).__init__()
         self.num_heads_gnn = num_heads
         self.sin_pe_dim = positional_embedding_size
@@ -202,21 +195,22 @@ class GATMamba(torch.nn.Module):
         feature_start_index = 2
        
         x_foundation = x[:, feature_start_index:feature_start_index+1024]
-        x_foundation = self.uni_feature_linear_transform(x_foundation)
+        x_foundation = self.uni_feature_linear_transform(x_foundation) # Algorithm 1 line 7
 
-        positional_embedding = torch.cat([sinusoidal_positional_embedding(x[:,x_index], int(self.sin_pe_dim / 2)),
+        positional_embedding = torch.cat([sinusoidal_positional_embedding(x[:,x_index], int(self.sin_pe_dim / 2)), 
                                     sinusoidal_positional_embedding(x[:,y_index], int(self.sin_pe_dim / 2))], dim=-1)
         
-        x = torch.cat([x_foundation, positional_embedding], dim = 1)
-        categorical_embedding = self.edge_embedding(edge_attr[:, 0].view(-1, 1).to(dtype = torch.long)).squeeze(1)
-        continuous_embedding = self.edge_linear_transform(edge_attr[:, 1:3])
-        edge_attr = continuous_embedding + categorical_embedding
-       
-        for layer in self.layers:
+        x = torch.cat([x_foundation, positional_embedding], dim = 1) # Algorithm 1 line 8
+        categorical_embedding = self.edge_embedding(edge_attr[:, 0].view(-1, 1).to(dtype = torch.long)).squeeze(1) # Algorithm 1 line 9
+        continuous_embedding = self.edge_linear_transform(edge_attr[:, 1:3]) # Algorithm 1 line 9
+        edge_attr = continuous_embedding + categorical_embedding # Algorithm 1 line 10
+
+        for layer in self.layers: # Algorithm 1 lines 11-13
             x = F.relu(layer(x, edge_index, batch, edge_attr=edge_attr))
 
-        x = global_mean_pool(x, batch)
-        return self.mlp(x), x
+        x = global_mean_pool(x, batch) # Algorithm 1 line 14
+        prediction = self.mlp(x) # Algorithm 1 line 16
+        return prediction, x
 
 
     
