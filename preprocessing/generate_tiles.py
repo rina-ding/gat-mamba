@@ -18,7 +18,9 @@ from util import Time
 
 import skimage.morphology as sk_morphology
 
-import sys
+import argparse
+
+SCALE_FACTOR = 32 
 
 THUMBNAIL_SIZE = 300
 FILTER_PAGINATION_SIZE = 50
@@ -124,7 +126,7 @@ def get_training_slide_path(slide_id):
   return slide_filepath
 
 
-def get_tile_image_path(tile):
+def get_tile_image_path(tile, w, h):
   """
   Obtain tile image path based on tile information such as row, column, row pixel position, column pixel position,
   pixel width, and pixel height.
@@ -140,7 +142,7 @@ def get_tile_image_path(tile):
   padded_sl_num = t.slide_id
   tile_path = os.path.join(tile_dir, 
                            "" + padded_sl_num + "-" + "tile" + "-r%d-c%d-x%d-y%d-w%d-h%d" % (
-                            t.r, t.c, t.o_c_s, t.o_r_s, COL_TILE_SIZE, ROW_TILE_SIZE) + "." + "png")
+                            t.r, t.c, t.o_c_s, t.o_r_s, w, h) + "." + "png")
   return tile_path
 
 
@@ -1560,6 +1562,15 @@ class Tile:
     t = self
     slide_filepath = get_training_slide_path(t.slide_id)
     s = open_slide(slide_filepath)
+    mpp = s.properties['aperio.MPP']
+    if mpp >= 0.5:
+      ROW_TILE_SIZE, COL_TILE_SIZE = 1024, 1024
+      WSI_LEVEL = 0
+      mag_level = '20'
+    elif mpp < 0.5:
+      ROW_TILE_SIZE, COL_TILE_SIZE = 512, 512
+      WSI_LEVEL = 1
+      mag_level = '10'
 
     x, y = t.o_c_s, t.o_r_s
     w, h = ROW_TILE_SIZE, COL_TILE_SIZE
@@ -1567,7 +1578,7 @@ class Tile:
     pil_img = tile_region.convert("RGB")
     img2_resized = np.asarray(pil_img.resize((224, 224)))
     img2_resized = Image.fromarray(img2_resized, 'RGB')
-    img_path = get_tile_image_path(self)
+    img_path = get_tile_image_path(self, w, h)
     img_path = img_path.replace('w' + str(w) + '-h' + str(h), mag_level + 'x')
     dir = os.path.dirname(img_path)
     if not os.path.exists(dir):
@@ -1591,11 +1602,6 @@ def singleprocess_filtered_images_to_tiles(cohort_name, display=False, save_summ
     elif cohort_name == 'tcga':
       img_path_pid = os.path.basename(img_path)[0:12]
       img_path_sid = os.path.basename(img_path)[0:23]
-      
-    # For CPTAC data
-    elif cohort_name == 'cptac':
-      img_path_pid = os.path.basename(img_path)[0:9]
-      img_path_sid = os.path.basename(img_path)[0:12]
     
     slide_path = os.path.join(wsi_root_path, img_path_pid, img_path_sid + '.svs')
     print("Processing ", slide_path)
@@ -1628,6 +1634,16 @@ def score_tiles(slide_num, slide_id, np_img=None, dimensions=None, small_tile_in
 
   if np_img is None:
     np_img = open_image_np(img_path)
+
+  slide_filepath = get_training_slide_path(slide_id)
+  s = open_slide(slide_filepath)
+  mpp = s.properties['aperio.MPP']
+  if mpp >= 0.5:
+    ROW_TILE_SIZE, COL_TILE_SIZE = 1024, 1024
+    MAG_FACTOR = 1
+  elif mpp < 0.5:
+    ROW_TILE_SIZE, COL_TILE_SIZE = 512, 512
+    MAG_FACTOR = 4
 
   row_tile_size = round(ROW_TILE_SIZE*MAG_FACTOR / SCALE_FACTOR)  
   col_tile_size = round(COL_TILE_SIZE*MAG_FACTOR / SCALE_FACTOR) 
@@ -1690,24 +1706,18 @@ def score_tiles(slide_num, slide_id, np_img=None, dimensions=None, small_tile_in
   return tile_sum
 
 if __name__ == "__main__":
-  cohort_name = 'nlst'
-  mag_level = '10'
-  SCALE_FACTOR = 32 
-  if mag_level == '20':
-    MAG_FACTOR = 1 
-    WSI_LEVEL = 0 
-    ROW_TILE_SIZE = 1024
-    COL_TILE_SIZE = 1024
-  elif mag_level == '10':
-    MAG_FACTOR = 4
-    WSI_LEVEL = 1
-    ROW_TILE_SIZE = 512
-    COL_TILE_SIZE = 512
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--cohort_name', type = str, default = None, help = 'cohort name, nlst or tcga')
+  parser.add_argument('--path_to_wsi_images', type = str, default = None, help = 'Parent path to all the WSIs')
+  parser.add_argument('--path_to_generated_tiles', type = str, default = None, help = 'Parent path to the generated tiles')
+  args = parser.parse_args()
 
-  wsi_root_path = 'path_to_wsi_images'
+  cohort_name = args.cohort_name
+  wsi_root_path = args.path_to_wsi_images
+  wsi_tiles_root_dir = args.path_to_generated_tiles
+
   wsi_cases_dir = glob_function(os.path.join(wsi_root_path, '*'))
   wsi_cases_dir = sorted(wsi_cases_dir)
-  wsi_tiles_root_dir = 'path_to_generated_tiles'
 
   for case in range(len(wsi_cases_dir)):
     wsi_tiles_cases_dir = os.path.join(wsi_tiles_root_dir, os.path.basename(wsi_cases_dir[case]))
@@ -1723,11 +1733,11 @@ if __name__ == "__main__":
     tile_summary_on_original_dir = os.path.join(base_dir, "tile_summary_on_original_" + "png")
     tile_data_dir = os.path.join(base_dir, "tile_data")
 
-    top_tiles_suffix = mag_level + "x_top_tile_summary"
+    top_tiles_suffix = "top_tile_summary"
     top_tiles_dir = os.path.join(base_dir, top_tiles_suffix + "_" + "png")
     top_tiles_on_original_dir = os.path.join(base_dir, top_tiles_suffix + "_on_original_" + "png")
 
-    tile_dir = os.path.join(base_dir, "tiles_" + mag_level + "x_" + "png")
+    tile_dir = os.path.join(base_dir, "tiles_png")
     singleprocess_training_slides_to_images()
     singleprocess_apply_filters_to_images(html = False)
     singleprocess_filtered_images_to_tiles(cohort_name, display = False, image_num_list = None, save_summary=False, save_data=False, save_top_tiles=True)

@@ -9,13 +9,13 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 from luad_subtype_classifier_model import ModifiedResNet, ResNetEncoder
 import torch.nn.functional as F
-
 from PIL import Image
 import timm
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
 from huggingface_hub import login
 from natsort import natsort_keygen
+import argparse
 
 class DataProcessor(Dataset):
     def __init__(self, imgs_dir, transformations=None):
@@ -160,17 +160,25 @@ class FeatureExtractor:
                                 
 if __name__ == "__main__":
     login()  # login with your User Access Token, found at https://huggingface.co/settings/tokens # Code is based on https://github.com/mahmoodlab/uni
-    parent_dir_for_tiles = 'parent dir to the tiled WSIs'
-    FEATURE_DIR = 'dir to save the extracted features' 
-    if not os.path.exists(FEATURE_DIR):
-        os.makedirs(FEATURE_DIR)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path_to_generated_tiles', type = str, default = None, help = 'Parent path to the generated tiles from WSIs')
+    parser.add_argument('--path_to_extracted_features', type = str, default = None, help = 'Parent path to extracted features')
+    parser.add_argument('--path_to_patient_outcome', type = str, default = None, help = 'Path to the clinical data that contains a patient outcome (event and days)')
+    parser.add_argument('--path_to_luad_subtype_classifier', type = str, default = None, help = 'Parent path to luad subtype classification model https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights')
+    args = parser.parse_args()
+
+    parent_dir_for_tiles = args.path_to_generated_tiles
+    output_feature_dir = args.path_to_extracted_features
+    if not os.path.exists(output_feature_dir):
+        os.makedirs(output_feature_dir)
     all_cases = natsorted(glob(parent_dir_for_tiles, '*')) 
-    df_clinical = 'path to the clinical data that contains a patient outcome (event and days)'
-    ssl1_model_path = 'path to luad subtype classification model1'
-    ssl2_model_path = 'path to luad subtype classification model2'
-    ssl3_model_path = 'path to luad subtype classification model3'
+    df_clinical = pd.read_csv(args.path_to_patient_outcome)
+    ssl1_model_path = os.path.join(args.path_to_luad_subtype_classifier, 'proposed_ssl1')
+    ssl2_model_path = os.path.join(args.path_to_luad_subtype_classifier, 'proposed_ssl2')
+    ssl3_model_path = os.path.join(args.path_to_luad_subtype_classifier, 'proposed_ssl3')
+
     for i in range(len(all_cases)):
-        tiles_root_dir = glob(os.path.join(all_cases[i], 'tiles_*x_png', '*.png'))
+        tiles_root_dir = glob(os.path.join(all_cases[i], 'tiles_png', '*.png'))
         pid = os.path.basename(all_cases[i])           
         print('For patient ', pid)
         extractor = FeatureExtractor()
@@ -191,4 +199,4 @@ if __name__ == "__main__":
         df_features_uni.insert(df_features_uni.columns.get_loc('event')+1, 'predicted_class', df_features_deep['predicted_class'])
 
         # Saving the features into a csv file
-        df_features_uni.to_csv(os.path.join(FEATURE_DIR, str(pid) + '.csv'))
+        df_features_uni.to_csv(os.path.join(output_feature_dir, str(pid) + '.csv'))

@@ -8,6 +8,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 import torch
 from torch_geometric.data import Data, InMemoryDataset, Batch
 from torch_geometric.utils import to_undirected
+import argparse
 
 class GraphDataset(InMemoryDataset):
     def __init__(self, root, transform=None, pre_transform=None):
@@ -19,8 +20,7 @@ class GraphDataset(InMemoryDataset):
         return 'graph_data.pt'
 
     def process(self):
-        parent_dir_node_features = 'parent dir to the extracted tile/node features'
-        all_dir = natsorted(glob(os.path.join(parent_dir_node_features, '*.csv')))
+        all_dir = natsorted(glob(os.path.join(path_to_extracted_features, '*.csv')))
         data_list = create_data_object_list(all_dir)
 
         # Store the processed data
@@ -193,8 +193,13 @@ def subtype_subtype_edge(list_of_subtypes):
             return 'none'
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path_to_extracted_features', type = str, default = None, help = 'Parent path to extracted features')
+    parser.add_argument('--processed_graph_data_path', type = str, default = None, help = 'Path to processed graph data')
 
-    processed_data_save_path = ''
+    args = parser.parse_args()
+    path_to_extracted_features = args.path_to_extracted_features
+    processed_data_save_path = args.processed_graph_data_path
     if not os.path.exists(processed_data_save_path):
         os.makedirs(processed_data_save_path)
     dataset = GraphDataset(root = processed_data_save_path)

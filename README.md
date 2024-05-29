@@ -15,8 +15,10 @@ Then install all packages listed [here](./requirements/pip_commands.txt).
 ### Preprocessing
 Download NLST data from [NLST](https://wiki.cancerimagingarchive.net/display/NLST/NLST+Pathology), download TCGA data from [TCGA-LUAD](https://portal.gdc.cancer.gov/projects/TCGA-LUAD).
 
-Use [generate_tiles.py](./preprocessing/generate_tiles.py) to generate tiles of specified magnification level specified by `mag_level (string)`, the parent folder path containing all patients and slides `wsi_root_path`, destination folder path `wsi_tiles_root_dir`, and cohort name `cohort_name`('nlst', 'tcga').  
-
+Use [generate_tiles.py](./preprocessing/generate_tiles.py) to generate tiles by specifying the cohort name('nlst' or 'tcga'), the location of the input WSIs, and output tiles:
+```
+python generate_tiles.py --cohort_name <cohort_name> --path_to_wsi_images <path_to_wsi_images> --path_to_generated_tiles <path_to_generated_tiles>
+```
 Input data structure:
 ```
   ├── <patient_id>                   
@@ -34,7 +36,10 @@ Output data structure:
 
 ```
 ### Feature extraction
-Run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. Set the input path in the code `parent_dir_for_tiles` to be the output path from the previous step. The pretrained LUAD subtype classifier model weights can be accessed [here](https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights).
+Run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. The pretrained LUAD subtype classifier model weights can be accessed [here](https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights).
+```
+python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> --path_to_luad_subtype_classifier <path_to_luad_subtype_classifier>
+```
 
 Output data structure:
 ```
@@ -45,7 +50,10 @@ Output data structure:
 where in each csv file, the first column is slide id, second column tile name, third column patient's time to event (or follow-up time), forth column patient's event status, fifth column the LUAD histologic subtype, and the rest of the 1024 columns are the UNI features.
 
 ### Graph data construction
-Run [create_dataset_uni.py](./modeling/create_dataset_uni.py) to get the procesed graph dataset object named `graph_data.pt` that can be fed into the graph modeling code in the next step, using the extracted features from the previous step as input. Set the input path in the code `parent_dir_node_features` to be the output path from the previous step.
+Run [create_dataset_uni.py](./modeling/create_dataset_uni.py) to get the procesed graph dataset object named `graph_data.pt` that can be fed into the graph modeling code in the next step, using the extracted features from the previous step as input. 
+```
+python create_dataset_uni.py --path_to_extracted_features <path_to_extracted_features> --processed_graph_data_path <processed_graph_data_path>
+```
 
 Output data structure:
 ```
