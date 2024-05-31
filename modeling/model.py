@@ -168,13 +168,14 @@ class GATMamba(torch.nn.Module):
         self.edge_embedding_size = 16
         self.num_continuous_edge_features = 2
         self.graph_dim_foundation = uni_hidden
-        self.edge_embedding = torch.nn.Embedding(21, self.edge_embedding_size) # We have 21 subtype-subtype edge categories
-        self.edge_linear_transform = Linear(self.num_continuous_edge_features, self.edge_embedding_size)
-        self.uni_feature_linear_transform = Linear(self.num_uni_features, self.graph_dim_foundation)
+        self.edge_embedding = torch.nn.Embedding(21, self.edge_embedding_size) # EB_cat in Algorithm 1
+        self.edge_linear_transform = Linear(self.num_continuous_edge_features, self.edge_embedding_size) #L_edge in Algorithm 1
+        self.uni_feature_linear_transform = Linear(self.num_uni_features, self.graph_dim_foundation) # L_node in Algorithm 1
         hidden = self.graph_dim_foundation + self.sin_pe_dim
 
         self.layers = torch.nn.ModuleList()
         for _ in range(num_model_layers):
+            # One layer is one GATMambaBlock in the paper
             self.conv_gat = GATConv(self.graph_dim_foundation + self.sin_pe_dim, hidden, heads = self.num_heads_gnn, dropout = gnn_dropout)
             self.layer = GATMambaBlock(hidden*self.num_heads_gnn, self.conv_gat, attn_dropout=mlp_dropout, dropout = mlp_dropout, att_type='mamba')
             self.layers.append(self.layer)
@@ -188,19 +189,21 @@ class GATMamba(torch.nn.Module):
             Linear(hidden*self.num_heads_gnn // 4, 1),
 )
     def forward(self, dataset):
-    
+        # dataset: a batch of graphs as one big graph
+        # x: node features, edge_index: the adjacency matrix, edge_attr: edge features, batch: the batch mapping of each node to the corresponding graph
         x, edge_index, edge_attr, batch = dataset.x, dataset.edge_index, dataset.edge_attr, dataset.batch
         x_index = 0
         y_index = 1
         feature_start_index = 2
        
+        # Node feature transformation 
         x_foundation = x[:, feature_start_index:feature_start_index+1024]
         x_foundation = self.uni_feature_linear_transform(x_foundation) # Algorithm 1 line 7
-
         positional_embedding = torch.cat([sinusoidal_positional_embedding(x[:,x_index], int(self.sin_pe_dim / 2)), 
                                     sinusoidal_positional_embedding(x[:,y_index], int(self.sin_pe_dim / 2))], dim=-1)
-        
         x = torch.cat([x_foundation, positional_embedding], dim = 1) # Algorithm 1 line 8
+
+        # Edge feature transformation
         categorical_embedding = self.edge_embedding(edge_attr[:, 0].view(-1, 1).to(dtype = torch.long)).squeeze(1) # Algorithm 1 line 9
         continuous_embedding = self.edge_linear_transform(edge_attr[:, 1:3]) # Algorithm 1 line 9
         edge_attr = continuous_embedding + categorical_embedding # Algorithm 1 line 10
