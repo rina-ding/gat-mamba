@@ -189,9 +189,11 @@ class GATMamba(torch.nn.Module):
             Linear(hidden*self.num_heads_gnn // 4, 1),
 )
     def forward(self, dataset):
-        # dataset: a batch of graphs as one big graph
+        # dataset: a data structure containing components of the graph. Essentially a batch of graphs as one big graph.
         # x: node features, edge_index: the adjacency matrix, edge_attr: edge features, batch: the batch mapping of each node to the corresponding graph
         x, edge_index, edge_attr, batch = dataset.x, dataset.edge_index, dataset.edge_attr, dataset.batch
+        
+        # Define indices
         x_index = 0
         y_index = 1
         feature_start_index = 2
@@ -204,12 +206,12 @@ class GATMamba(torch.nn.Module):
         x = torch.cat([x_foundation, positional_embedding], dim = 1) # Algorithm 1 line 8
 
         # Edge feature transformation
-        categorical_embedding = self.edge_embedding(edge_attr[:, 0].view(-1, 1).to(dtype = torch.long)).squeeze(1) # Algorithm 1 line 9
-        continuous_embedding = self.edge_linear_transform(edge_attr[:, 1:3]) # Algorithm 1 line 9
-        edge_attr = continuous_embedding + categorical_embedding # Algorithm 1 line 10
+        e_cat = self.edge_embedding(edge_attr[:, 0].view(-1, 1).to(dtype = torch.long)).squeeze(1) # Algorithm 1 line 9
+        e_cont = self.edge_linear_transform(edge_attr[:, 1:3]) # Algorithm 1 line 9
+        e = e_cont + e_cat # Algorithm 1 line 10
 
         for layer in self.layers: # Algorithm 1 lines 11-13
-            x = F.relu(layer(x, edge_index, batch, edge_attr=edge_attr))
+            x = F.relu(layer(x, edge_index, batch, edge_attr=e))
 
         x = global_mean_pool(x, batch) # Algorithm 1 line 14
         prediction = self.mlp(x) # Algorithm 1 line 16
