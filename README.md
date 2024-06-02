@@ -64,7 +64,7 @@ Output data structure:
 
 ```
 ### Modeling
-Run [main_gat_mamba.py](./modeling/main_gat_mamba.py) using the path of `processed` as input.
+Run [main_gat_mamba.py](./modeling/main_gat_mamba.py) using the path of `processed` as input. This script allows one to do both training and inference on the data and print out the train, validation, and test sets' metrics (C-index and dynamic AUC). 
 ```
 CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_graph_data_path>
 ```
