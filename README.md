@@ -36,7 +36,11 @@ Output data structure:
 
 ```
 ### Feature extraction
-Run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. The pretrained LUAD subtype classifier model weights can be accessed [here](https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights).
+First, request access to the pretrained UNI model weights [here](https://huggingface.co/mahmoodlab/UNI). 
+
+Then download the pretrained LUAD subtype classifier model weights [here](https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights). 
+
+Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. 
 ```
 python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> --path_to_luad_subtype_classifier <path_to_luad_subtype_classifier>
 ```
@@ -64,7 +68,7 @@ Output data structure:
 
 ```
 ### Modeling
-Run [main_gat_mamba.py](./modeling/main_gat_mamba.py) using the path of `processed` as input. This script allows one to do both training and inference on the data and print out the train, validation, and test sets' metrics (C-index and dynamic AUC). 
+Run [main_gat_mamba.py](./modeling/main_gat_mamba.py). This script allows one to do both training and inference on the data and print out the train, validation, and test sets' metrics (C-index and dynamic AUC). 
 ```
-CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_graph_data_path>
+CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_graph_data_path> --cv_split_path <cv_split_path>
 ```
