@@ -17,6 +17,6 @@ pip install tensorboardX
 pip install ogb
 pip install wandb
 pip install causal-conv1d==1.0.2
-pip install mamba-ssm
+pip install mamba-ssm==1.2.0.post1
 pip install natsort
 pip install scikit-survival
