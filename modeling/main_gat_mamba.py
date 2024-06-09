@@ -132,7 +132,9 @@ class TrainModel:
             avg_train_loss = running_train_loss / len(trainloader)
             avg_val_loss = running_val_loss / len(validloader)
             scheduler.step(avg_val_loss)
-            
+            print('output_list ', output_list)
+            print('days_list ', days_list)
+            print('event_list ', event_list)
             c_index = concordance_index(days_list, output_list, event_list)
 
             # Append losses and track metrics
@@ -230,7 +232,11 @@ def get_auc_score(df_train, df_test):
     dtype = np.dtype([('event', np.bool_), ('time', np.float64)])
     structured_array_train = np.array(list(df_train[['event', 'days']].to_records(index=False)), dtype=dtype)
     structured_array_test = np.array(list(df_test[['event', 'days']].to_records(index=False)), dtype=dtype)
-    _, score = cumulative_dynamic_auc(structured_array_train, structured_array_test, df_test['risk'], np.asarray([365, 365*3, 365*5]).flatten()) 
+    try:
+        _, score = cumulative_dynamic_auc(structured_array_train, structured_array_test, df_test['risk'], np.asarray([365, 365*3, 365*5]).flatten()) 
+    except:
+        _, score = cumulative_dynamic_auc(structured_array_train, structured_array_test, df_test['risk'], np.asarray([df_test['days'].median()]).flatten()) 
+
     return score
 
 def split_graph_data(df_clinical, dataset):
@@ -304,7 +310,7 @@ if __name__ == "__main__":
         train_graph_dataset = split_graph_data(df_train, graph_dataset)
         val_graph_dataset = split_graph_data(df_val, graph_dataset)
         test_graph_dataset = split_graph_data(df_test, graph_dataset)
-
+       
         train_obj = TrainModel(num_classes, num_epcohs, batches, learning_rate, weight_decay, weight_regu, early_stopping_epoch, gnn_hidden,  positional_embedding_size, gnn_dropout, mlp_dropout, num_gat_heads, num_model_layers, fold_index)
         train_obj.start_training(train_graph_dataset, val_graph_dataset)
         train_score, df_prediction_train = train_obj.runinference(train_graph_dataset)
