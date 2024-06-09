@@ -1,7 +1,7 @@
 # gat-mamba
 Combining Graph Neural Network and Mamba to Capture Local and Global Tissue Spatial Relationships in Whole Slide Images
 
-In computational pathology, whole slide images (WSIs) are typically segmented into small tiles for analysis due to their large size. A critical aspect of this analysis is the method of aggregating information from these tiles to make predictions at the WSI level. This study introduces a model that treats each tile as a node in a graph and combines a message-passing graph neural network (GNN) with a state space model Mamba to capture both local and global spatial relationships among the tiles in WSIs. The effectiveness of the model was demonstrated on  early-stage lung adenocarcinomas (LUAD) progression-free suvival prediction. We  compared the model with other state-of-the-art methods for tile level information aggregation in WSIs, including tile-level information symmary statistics-based aggregation, multiple instance learning (MIL)-based aggregation, GNN-based aggregation, and GNN-transformer-based aggregation. Additional experiments showed the impact of different types of node features and different tile sampling strategies on the model performance. This work can be easily extended to any WSI-based analysis.
+In computational pathology, extracting spatial features from gigapixel whole slide images (WSIs) is a fundamental task, but due to their large size, WSIs are typically segmented into smaller tiles. A critical aspect of this analysis is aggregating information from these tiles to make predictions at the WSI level. We introduce a model that combines a message-passing graph neural network (GNN) with a state space model (Mamba) to capture both local and global spatial relationships among the tiles in WSIs. The model's effectiveness was demonstrated in predicting progression-free survival among patients with early-stage lung adenocarcinomas (LUAD). We compared the model with other state-of-the-art methods for tile-level information aggregation in WSIs, including tile-level information summary statistics-based aggregation, multiple instance learning (MIL)-based aggregation, GNN-based aggregation, and GNN-transformer-based aggregation. Additional experiments showed the impact of different types of node features and different tile sampling strategies on the model performance. This work can be easily extended to any WSI-based analysis.
 ![overview](overview.png)
 
 ## Instructions 
@@ -42,6 +42,7 @@ Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_s
 ```
 CUDA_VISIBLE_DEVICES=0 python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> 
 ```
+There will be a prompt asking for your HuggingFace access token. You can go to `Settings` and then `Access Tokens` and copy the token by `conch_uni` once you got access to the UNI weights.
 
 Output data structure:
 ```
