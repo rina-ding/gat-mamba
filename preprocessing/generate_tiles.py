@@ -1562,7 +1562,7 @@ class Tile:
     t = self
     slide_filepath = get_training_slide_path(t.slide_id)
     s = open_slide(slide_filepath)
-    mpp = s.properties['aperio.MPP']
+    mpp = float(s.properties['aperio.MPP'])
     if mpp >= 0.5:
       ROW_TILE_SIZE, COL_TILE_SIZE = 1024, 1024
       WSI_LEVEL = 0
@@ -1637,7 +1637,7 @@ def score_tiles(slide_num, slide_id, np_img=None, dimensions=None, small_tile_in
 
   slide_filepath = get_training_slide_path(slide_id)
   s = open_slide(slide_filepath)
-  mpp = s.properties['aperio.MPP']
+  mpp = float(s.properties['aperio.MPP'])
   if mpp >= 0.5:
     ROW_TILE_SIZE, COL_TILE_SIZE = 1024, 1024
     MAG_FACTOR = 1

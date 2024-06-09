@@ -85,15 +85,15 @@ class FeatureExtractor:
         print("Number of images ", len(dataset))
         testloader = DataLoader(dataset, batch_size=batch, shuffle=False, drop_last=False)
         
-        model1 = ModifiedResNet(self.num_classes).to(self.device)
+        model1 = ModifiedResNet(6).to(self.device)
         weights = torch.load(os.path.join(ssl1_model_path, 'resnet18_fold1.pth'), map_location=self.device)
         model1.load_state_dict(weights)
 
-        model2 = ModifiedResNet(self.num_classes).to(self.device)
+        model2 = ModifiedResNet(6).to(self.device)
         weights = torch.load(os.path.join(ssl2_model_path, 'resnet18_fold1.pth'), map_location=self.device)
         model2.load_state_dict(weights)
 
-        model3 = ResNetEncoder(self.num_classes).to(self.device)
+        model3 = ResNetEncoder(6).to(self.device)
         weights = torch.load(os.path.join(ssl3_model_path, 'resnet18_fold1.pth'), map_location=self.device)
         model3.load_state_dict(weights)
 
@@ -156,7 +156,7 @@ class FeatureExtractor:
             df_features = pd.DataFrame(features_array)
             df_features.insert(0, 'tile_name', tile_names)
             df_features.insert(1, 'predicted_class', predicted_class)
-            return df_features
+            return df_features, tile_names
                                 
 if __name__ == "__main__":
     login()  # login with your User Access Token, found at https://huggingface.co/settings/tokens # Code is based on https://github.com/mahmoodlab/uni
@@ -164,18 +164,17 @@ if __name__ == "__main__":
     parser.add_argument('--path_to_generated_tiles', type = str, default = None, help = 'Parent path to the generated tiles from WSIs')
     parser.add_argument('--path_to_extracted_features', type = str, default = None, help = 'Parent path to extracted features')
     parser.add_argument('--path_to_patient_outcome', type = str, default = None, help = 'Path to the clinical data that contains a patient outcome (event and days)')
-    parser.add_argument('--path_to_luad_subtype_classifier', type = str, default = None, help = 'Parent path to luad subtype classification model https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights')
     args = parser.parse_args()
 
     parent_dir_for_tiles = args.path_to_generated_tiles
     output_feature_dir = args.path_to_extracted_features
     if not os.path.exists(output_feature_dir):
         os.makedirs(output_feature_dir)
-    all_cases = natsorted(glob(parent_dir_for_tiles, '*')) 
+    all_cases = natsorted(glob(os.path.join(parent_dir_for_tiles, '*')))
     df_clinical = pd.read_csv(args.path_to_patient_outcome)
-    ssl1_model_path = os.path.join(args.path_to_luad_subtype_classifier, 'proposed_ssl1')
-    ssl2_model_path = os.path.join(args.path_to_luad_subtype_classifier, 'proposed_ssl2')
-    ssl3_model_path = os.path.join(args.path_to_luad_subtype_classifier, 'proposed_ssl3')
+    ssl1_model_path = os.path.join('./feature_extraction/luad_subtype_weights', 'proposed_ssl1')
+    ssl2_model_path = os.path.join('./feature_extraction/luad_subtype_weights', 'proposed_ssl2')
+    ssl3_model_path = os.path.join('./feature_extraction/luad_subtype_weights', 'proposed_ssl3')
 
     for i in range(len(all_cases)):
         tiles_root_dir = glob(os.path.join(all_cases[i], 'tiles_png', '*.png'))
@@ -186,17 +185,18 @@ if __name__ == "__main__":
         df_features_deep, tile_names = extractor.extract_features_luad(tiles_root_dir)
 
          # Adding slide id, tile name into the feature matrix
-        df_features_uni.insert(0, 'sid', [x.split('-tile-')[0] for x in df_features_uni['tile_name']])
+        df_features_uni.insert(0, 'sid', [x.split('-tile-')[0] for x in tile_names])
         df_features_uni.insert(1, 'tile_name', tile_names)
 
         # Add predicted luad subtype, survival event, and survival days
-        event = df_clinical[df_clinical['pid'] == pid]['event']
-        days = df_clinical[df_clinical['pid'] == pid]['days']
+        event = df_clinical[df_clinical['pid'] == pid]['event'].values[0]
+        days = df_clinical[df_clinical['pid'] == pid]['days'].values[0]
+        
         df_features_uni.insert(df_features_uni.columns.get_loc('tile_name')+1, 'days', len(df_features_uni) * [days])
-        df_features_uni.insert(df_features_uni.columns.get_loc('tile_name')+1, 'event', len(df_features_uni) * [event])
+        df_features_uni.insert(df_features_uni.columns.get_loc('days')+1, 'event', len(df_features_uni) * [event])
         df_features_uni = df_features_uni.sort_values(by = ['tile_name'], key=natsort_keygen())
         df_features_deep = df_features_deep.sort_values(by = ['tile_name'], key=natsort_keygen())
         df_features_uni.insert(df_features_uni.columns.get_loc('event')+1, 'predicted_class', df_features_deep['predicted_class'])
 
         # Saving the features into a csv file
-        df_features_uni.to_csv(os.path.join(output_feature_dir, str(pid) + '.csv'))
+        df_features_uni.to_csv(os.path.join(output_feature_dir, str(pid) + '.csv'), index = None)

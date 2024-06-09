@@ -15,11 +15,6 @@ Then install all packages listed [here](./requirements/pip_commands.txt).
 ### Preprocessing
 Download NLST data from [NLST](https://wiki.cancerimagingarchive.net/display/NLST/NLST+Pathology), download TCGA data from [TCGA-LUAD](https://portal.gdc.cancer.gov/projects/TCGA-LUAD).
 
-Then run this command to load the file `libpixman-1.so.0.34.0` so that the openslide can generate the tiles with the correct coloring(the file can be found [here](./requirements/libpixman-1.so.0.34.0) ):
-```
-export LD_PRELOAD=./requirements/libpixman-1.so.0.34.0
-```
-
 Use [generate_tiles.py](./preprocessing/generate_tiles.py) to generate tiles by specifying the cohort name('nlst' or 'tcga'), the location of the input WSIs, and output tiles:
 ```
 python generate_tiles.py --cohort_name <cohort_name> --path_to_wsi_images <path_to_wsi_images> --path_to_generated_tiles <path_to_generated_tiles>
@@ -34,7 +29,7 @@ Input data structure:
 Output data structure:
 ```
   ├── <patient_id>                   
-  │   ├── <tiles>
+  │   ├── <tiles_png>
       │   ├──<tile_id1.png>
       │   ├──<tile_id2.png>
       │   ├──<...>
@@ -43,11 +38,9 @@ Output data structure:
 ### Feature extraction
 First, request access to the pretrained UNI model weights [here](https://huggingface.co/mahmoodlab/UNI). 
 
-Then download the pretrained LUAD subtype classifier model weights [here](https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights). 
-
 Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. 
 ```
-python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> --path_to_luad_subtype_classifier <path_to_luad_subtype_classifier>
+CUDA_VISIBLE_DEVICES=0 python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> 
 ```
 
 Output data structure:
