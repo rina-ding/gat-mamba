@@ -73,3 +73,23 @@ CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_gra
 ```
 
 Note that `processed_graph_data_path` is the parent folder of the `processed` folder generated from the previous step.
+
+Splits are in the following structure:
+```
+  ├── <splits>                   
+  │   ├── <fold0>
+      │   ├──pids_train.csv
+      │   ├──pids_val.csv
+      │   ├──pids_test.csv
+  │   ├── <fold1> 
+      │   ├──pids_train.csv
+      │   ├──pids_val.csv
+      │   ├──pids_test.csv
+  │   ├── <fold2> 
+      │   ├──pids_train.csv
+      │   ├──pids_val.csv
+      │   ├──pids_test.csv
+  ...
+
+```
+Each `csv` file contains at least one column named `pid`, the patient IDs.
