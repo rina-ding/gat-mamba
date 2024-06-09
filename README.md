@@ -70,3 +70,5 @@ Run [main_gat_mamba.py](./modeling/main_gat_mamba.py). This script allows one to
 ```
 CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_graph_data_path> --cv_split_path <cv_split_path>
 ```
+
+Note that `processed_graph_data_path` is the parent folder of the `processed` folder generated from the previous step.
