@@ -8,15 +8,6 @@ pip install timm
 pip install torch_geometric
 pip install pyg_lib torch_scatter torch_sparse  -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
 pip install lifelines
-pip install openbabel-wheel
-pip install fsspec 
-pip install rdkit
-pip install pytorch-lightning yacs
-pip install performer-pytorch
-pip install tensorboardX
-pip install ogb
-pip install wandb
 pip install causal-conv1d==1.0.2
 pip install mamba-ssm==1.2.0.post1
-pip install natsort
 pip install scikit-survival
