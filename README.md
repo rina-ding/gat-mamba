@@ -40,6 +40,11 @@ First, request access to the pretrained UNI model weights [here](https://hugging
 
 Then download the pretrained LUAD subtype classifier model weights [here](https://github.com/rina-ding/ssl_luad_classification/tree/main/modeling/downstream_ensemble/model_weights). 
 
+Then run this command to load the file `libpixman-1.so.0.34.0` so that the openslide can generate the tiles with the correct coloring(the file can be found [here](./requirements/libpixman-1.so.0.34.0) ):
+```
+export LD_PRELOAD=./requirements/libpixman-1.so.0.34.0
+```
+
 Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. 
 ```
 python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> --path_to_luad_subtype_classifier <path_to_luad_subtype_classifier>
