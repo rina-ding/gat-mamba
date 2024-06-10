@@ -69,10 +69,11 @@ python create_dataset_uni.py --path_to_extracted_features <path_to_extracted_fea
 
 Output data structure:
 ```
-  ├── <processed>                   
-  │   ├── <graph_data.pt>
-  │   ├── <pre_filter.pt> 
-  │   ├── <pre_transform.pt> 
+  ├── <processed_graph_data_path>
+    ├── <processed>                   
+    │   ├── <graph_data.pt>
+    │   ├── <pre_filter.pt> 
+    │   ├── <pre_transform.pt> 
 
 ```
 ### Modeling
