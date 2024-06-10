@@ -120,13 +120,12 @@ Each `csv` file contains at least one column named `pid`, the patient IDs.
 
 ### Citation
 ```
-@misc{ding2024combining,
-      title={Combining Graph Neural Network and Mamba to Capture Local and Global Tissue Spatial Relationships in Whole Slide Images}, 
-      author={Ruiwen Ding and Kha-Dinh Luong and Erika Rodriguez and Ana Cristina Araujo Lemos da Silva and William Hsu},
-      year={2024},
-      eprint={2406.04377},
-      archivePrefix={arXiv},
-      primaryClass={eess.IV}
+@article{
+        ding2024combining,
+        title={Combining Graph Neural Network and Mamba to Capture Local and Global Tissue Spatial Relationships in Whole Slide Images}, 
+        author={Ruiwen Ding and Kha-Dinh Luong and Erika Rodriguez and Ana Cristina Araujo Lemos da Silva and William Hsu},
+        year={2024},
+        journal={arXiv preprint arXiv:2406.04377}
 }
 ```
 
