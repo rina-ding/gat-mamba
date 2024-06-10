@@ -13,6 +13,8 @@ docker run  --shm-size=2g --gpus all -it --rm -v /:/workspace -v /etc/localtime:
 ```
 Then install all packages listed [here](./requirements/pip_commands.txt).
 
+More information on the pytorch docker container `nvcr.io/nvidia/pytorch:24.02-py3` can be found here(https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags).
+
 ### Preprocessing
 Download NLST data from [NLST](https://wiki.cancerimagingarchive.net/display/NLST/NLST+Pathology), download TCGA data from [TCGA-LUAD](https://portal.gdc.cancer.gov/projects/TCGA-LUAD).
 
