@@ -38,10 +38,12 @@ Output data structure:
 ### Feature extraction
 First, request access to the pretrained UNI model weights [here](https://huggingface.co/mahmoodlab/UNI). 
 
-Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features using the tiled whole slide images from the previous step as input. 
+Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_subtype.py) to extract all tile/node features. 
 ```
 CUDA_VISIBLE_DEVICES=0 python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> 
 ```
+`path_to_patient_outcome` is the path to the csv file that contains three columns including patient IDs (`pid`), event status (`event`), and time to event or follow-up time in days (`days`).
+
 There will be a prompt asking for your HuggingFace access token. You can go to `Settings` and then `Access Tokens` and copy the token by `conch_uni` once you got access to the UNI weights.
 
 Output data structure:
