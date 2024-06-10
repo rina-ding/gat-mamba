@@ -11,7 +11,14 @@ First, create a pytorch docker container using:
 ```
 docker run  --shm-size=2g --gpus all -it --rm -v /:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.02-py3
 ```
-Then install all packages listed [here](./requirements/pip_commands.txt).
+Then install all packages listed [here](./requirements/pip_commands.sh) by running the following commands:
+
+```
+chmod +x pip_commands.sh
+```
+```
+./pip_commands.sh
+```
 
 More information on the pytorch docker container `nvcr.io/nvidia/pytorch:24.02-py3` can be found here(https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags).
 
