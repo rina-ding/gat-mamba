@@ -42,6 +42,10 @@ Then run [main_uni_and_luad_subtype.py](./feature_extraction/main_uni_and_luad_s
 ```
 CUDA_VISIBLE_DEVICES=0 python main_uni_and_luad_subtype.py --path_to_generated_tiles <path_to_generated_tiles> --path_to_extracted_features <path_to_extracted_features> --path_to_patient_outcome <path_to_patient_outcome> 
 ```
+`path_to_generated_tiles` is the parent path to the tiles generated from the previous module.
+
+`path_to_extracted_features` is the parent path where the extracted features will be stored after running the script.
+
 `path_to_patient_outcome` is the path to the csv file that contains three columns including patient IDs (`pid`), event status (`event`), and time to event or follow-up time in days (`days`).
 
 There will be a prompt asking for your HuggingFace access token. You can go to `Settings` and then `Access Tokens` and copy the token by `conch_uni` once you got access to the UNI weights.
@@ -59,6 +63,9 @@ Run [create_dataset_uni.py](./modeling/create_dataset_uni.py) to get the procese
 ```
 python create_dataset_uni.py --path_to_extracted_features <path_to_extracted_features> --processed_graph_data_path <processed_graph_data_path>
 ```
+`path_to_extracted_features` is the same as `path_to_extracted_features` from the previous module.
+
+`processed_graph_data_path` is the parent path where the generated graph data object will be stored after running the script.
 
 Output data structure:
 ```
@@ -73,8 +80,9 @@ Run [main_gat_mamba.py](./modeling/main_gat_mamba.py). This script allows one to
 ```
 CUDA_VISIBLE_DEVICES=0 python main_gat_mamba.py --graph_data_path <processed_graph_data_path> --cv_split_path <cv_split_path>
 ```
+`graph_data_path` is the same path as `processed_graph_data_path` from the previous module.
 
-Note that `processed_graph_data_path` is the parent folder of the `processed` folder generated from the previous step.
+`cv_split_path` is the parent path to all the 5-fold cross validation splits.
 
 Splits are in the following structure:
 ```
