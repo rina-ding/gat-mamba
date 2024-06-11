@@ -1562,16 +1562,7 @@ class Tile:
     t = self
     slide_filepath = get_training_slide_path(t.slide_id)
     s = open_slide(slide_filepath)
-    mpp = float(s.properties['aperio.MPP'])
-    if mpp >= 0.5:
-      ROW_TILE_SIZE, COL_TILE_SIZE = 1024, 1024
-      WSI_LEVEL = 0
-      mag_level = '20'
-    elif mpp < 0.5:
-      ROW_TILE_SIZE, COL_TILE_SIZE = 512, 512
-      WSI_LEVEL = 1
-      mag_level = '10'
-
+  
     x, y = t.o_c_s, t.o_r_s
     w, h = ROW_TILE_SIZE, COL_TILE_SIZE
     tile_region = s.read_region((x, y), WSI_LEVEL, (w, h))
@@ -1579,7 +1570,7 @@ class Tile:
     img2_resized = np.asarray(pil_img.resize((224, 224)))
     img2_resized = Image.fromarray(img2_resized, 'RGB')
     img_path = get_tile_image_path(self, w, h)
-    img_path = img_path.replace('w' + str(w) + '-h' + str(h), mag_level + 'x')
+    img_path = img_path.replace('w' + str(w) + '-h' + str(h))
     dir = os.path.dirname(img_path)
     if not os.path.exists(dir):
       os.makedirs(dir)
@@ -1695,10 +1686,14 @@ def score_tiles(slide_num, slide_id, np_img=None, dimensions=None, small_tile_in
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
+  parser.add_argument('--wsi_level', type = int, default = 1, help = 'whole slide level to extract the tiles from')
+  parser.add_argument('--tile_size', type = int, default = 512, help = 'tile size')
   parser.add_argument('--path_to_wsi_images', type = str, default = None, help = 'Parent path to all the WSIs')
   parser.add_argument('--path_to_generated_tiles', type = str, default = None, help = 'Parent path to the generated tiles')
   args = parser.parse_args()
 
+  ROW_TILE_SIZE, COL_TILE_SIZE = args.tile_size, args.tile_size
+  WSI_LEVEL = args.wsi_level
   wsi_root_path = args.path_to_wsi_images
   wsi_tiles_root_dir = args.path_to_generated_tiles
 
