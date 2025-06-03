@@ -1,9 +1,9 @@
 # Combining Graph Neural Network and Mamba to Capture Local and Global Tissue Spatial Relationships in Whole Slide Images
 
-### Paper preprint
-[Arxiv](https://arxiv.org/abs/2406.04377)
+### Published journal paper
+[Link](https://www.nature.com/articles/s41598-025-99042-4)
 
-In computational pathology, extracting spatial features from gigapixel whole slide images (WSIs) is a fundamental task, but due to their large size, WSIs are typically segmented into smaller tiles. A critical aspect of this analysis is aggregating information from these tiles to make predictions at the WSI level. We introduce a model that combines a message-passing graph neural network (GNN) with a state space model (Mamba) to capture both local and global spatial relationships among the tiles in WSIs. The model's effectiveness was demonstrated in predicting progression-free survival among patients with early-stage lung adenocarcinomas (LUAD). We compared the model with other state-of-the-art methods for tile-level information aggregation in WSIs, including tile-level information summary statistics-based aggregation, multiple instance learning (MIL)-based aggregation, GNN-based aggregation, and GNN-transformer-based aggregation. Additional experiments showed the impact of different types of node features and different tile sampling strategies on the model performance. This work can be easily extended to any WSI-based analysis.
+In computational pathology, extracting and representing spatial features from gigapixel whole slide images (WSIs) are fundamental tasks, but due to their large size, WSIs are typically segmented into smaller tiles. A critical aspect of analyzing WSIs is how information across tiles is aggregated to predict outcomes such as patient prognosis. We introduce a model that combines a message-passing graph neural network (GNN) with a state space model (Mamba) to capture both local and global spatial relationships among the tiles in WSIs. The model’s effectiveness was demonstrated in predicting progression-free survival among patients with early-stage lung adenocarcinomas (LUAD). We compared the model with other state-of-the-art methods for tile-level information aggregation in WSIs, including statistics-based, multiple instance learning (MIL)-based, GNN-based, and GNN-transformer-based aggregation. Our model achieved the highest c-index (0.70) and has the largest number of parameters among comparison models yet maintained a short inference time. Additional experiments showed the impact of different types of node features and different tile sampling strategies on model performance. Code: https://github.com/rina-ding/gat-mamba.
 
 ![overview](overview.png)
 
@@ -126,12 +126,15 @@ Each `csv` file contains at least one column named `pid`, the patient IDs.
 
 ### Citation
 ```
-@article{
-        ding2024combining,
-        title={Combining Graph Neural Network and Mamba to Capture Local and Global Tissue Spatial Relationships in Whole Slide Images}, 
-        author={Ruiwen Ding and Kha-Dinh Luong and Erika Rodriguez and Ana Cristina Araujo Lemos da Silva and William Hsu},
-        year={2024},
-        journal={arXiv preprint arXiv:2406.04377}
+@article{ding2025combining,
+  title={Combining graph neural network and mamba to capture local and global tissue spatial relationships in whole slide images},
+  author={Ding, Ruiwen and Luong, Kha-Dinh and Rodriguez, Erika and Da Silva, Ana Cristina Araujo Lemos and Hsu, William},
+  journal={Scientific Reports},
+  volume={15},
+  number={1},
+  pages={1--13},
+  year={2025},
+  publisher={Nature Publishing Group}
 }
 ```
 
